@@ -3,6 +3,9 @@ var urlsToCache = [
   '/',
   '/index.html',
   '/restaurant.html',
+  '/js/main.js',
+  '/js/restaurant_info.js',
+  '/css/styles.css'
 ];
 
 self.addEventListener('install', function(event) {
@@ -17,6 +20,20 @@ self.addEventListener('install', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
+  let requestUrl = event.request.url;
+  if(requestUrl.origin === location.origin && requestUrl.pathname === '/') {
+    event.respondWith(caches.match('index.html'));
+    return;
+  }
+  
+  // need to get response from server
+  if(requestUrl.includes(':1337')) {
+    if(requestUrl.includes('restaurants')) {
+      // get all restaurant list from indexDB
+      return;
+    }
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(function(response) {
