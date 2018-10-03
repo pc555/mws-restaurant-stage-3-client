@@ -138,6 +138,10 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
   }
 }
 
+function addReview(msg) {
+  console.log('hello review')
+  alert(msg)
+}
 /**
  * Create all reviews HTML and add them to the webpage.
  */
@@ -146,11 +150,19 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const title = document.createElement('h3');
   title.innerHTML = 'Reviews';
   container.appendChild(title);
-
+  /*
+  var formHTML = '<form action = "/" onsubmit="return addReview()">' +
+  '<div><label for="name">Name:</label><input type="text" id="name" name="name"></div>' +
+  '<div><label for="rating">Rating:</label><input type="number" id="rating" name="rating"></div>' +
+  '<div><label for="msg">Comments:&nbsp&nbsp</label><textarea id="msg" name="comments"></textarea></div>'+
+  '<div class="button"><button type="submit">Add Review</button></div>' +
+  '</form>';*/
+  
   if (!reviews) {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
     container.appendChild(noReviews);
+    //container.insertAdjacentHTML('beforeend', formHTML);
     return;
   }
   const ul = document.getElementById('reviews-list');
@@ -158,7 +170,9 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     ul.appendChild(createReviewHTML(review));
   });
   container.appendChild(ul);
+  //container.insertAdjacentHTML('beforeend', formHTML);
 }
+
 
 /**
  * Create review HTML and add it to the webpage.
