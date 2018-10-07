@@ -148,7 +148,8 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
   }
 }
 
-function addReview(msg) {
+function addReview(e) {
+  e.preventDefault();
   console.log('hello review')
   alert(msg)
 }
