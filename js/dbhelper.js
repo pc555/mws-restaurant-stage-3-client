@@ -19,12 +19,8 @@ class DBHelper {
     fetch(DBHelper.DATABASE_URL)
     .then((response)=>response.json())
     .then(data => {
-      // console.log(data);
-      console.log('fetch restaurant')
-
       //successful fetch restaurant, put it in 
       dbPromise.then(function(db) {
-        // console.log('doing indexdb!'); 
         let tx = db.transaction('restaurants', 'readwrite');
         let restaurantStore = tx.objectStore('restaurants');
 
@@ -48,13 +44,6 @@ class DBHelper {
           callback(null, restaurantsIdb)
         })
       })
-      // dbPromise.then(db => {
-      //   let tx = db.transaction('restaurants');
-      //   let restaurantStore = tx.objectStore('restaurants');
-      //   return restaurantStore.get(1);
-      // }).then(val => console.log(val));
-
-
     });
     // let xhr = new XMLHttpRequest();
     // xhr.open('GET', DBHelper.DATABASE_URL);
@@ -72,20 +61,86 @@ class DBHelper {
   }
 
   /**
+   * Fetch all restaurants.
+   */
+  static fetchRestaurantReviews(callback) {
+    //fetch(`http://localhost:1337/reviews/?restaurant_id=${restaurant.id}`)
+    fetch(`http://localhost:1337/reviews/`)
+    .then((response)=>response.json())
+    .then(data => {
+      //successful fetch restaurant, put it in 
+      dbPromise.then(function(db) {
+        let tx = db.transaction('restaurantReviews', 'readwrite');
+        let reviewStore = tx.objectStore('restaurantReviews');
+
+        for(const restaurant of data) {
+          reviewStore.put(restaurant);
+        }
+        return tx.complete;
+      });
+
+      callback(null, data);
+    })
+    .catch(error => {
+      //callback(error, null)
+      //fetch failed, getting data from IndexDB
+      console.log('failed to fetch! '+error);
+      dbPromise.then(db => {
+        const tx = db.transaction("restaurantReviews", "readonly");
+        const store = tx.objectStore("restaurantReviews");
+        console.log(store)
+        store.getAll().then(restaurantsIdb => {
+          callback(null, restaurantsIdb)
+        })
+      })
+    });
+  }
+  /**
    * Fetch a restaurant by its ID.
    */
   static fetchRestaurantById(id, callback) {
-    console.log('fetchRestaurantById');
+    // console.log('fetchRestaurantById');
     // fetch all restaurants with proper error handling.
+    let restaurant = null;
     DBHelper.fetchRestaurants((error, restaurants) => {
       if (error) {
         callback(error, null);
       } else {
-        const restaurant = restaurants.find(r => r.id == id);
+        restaurant = restaurants.find(r => r.id == id);
         if (restaurant) { // Got the restaurant
-          callback(null, restaurant);
+          // callback(null, restaurant);
         } else { // Restaurant does not exist in the database
           callback('Restaurant does not exist', null);
+        }
+      }
+    });
+
+    DBHelper.fetchRestaurantReviewById(id, (error, reviews) => {
+        if (!reviews) {
+          console.error(error);
+          return;
+        } else {
+          restaurant.reviews = reviews;
+          callback(null, restaurant);
+        }
+      });
+  }
+
+  /**
+   * Fetch restaurant reviews by its ID.
+   */
+  static fetchRestaurantReviewById(id, callback) {
+    // console.log('fetchRestaurantById');
+    // fetch all restaurants with proper error handling.
+    DBHelper.fetchRestaurantReviews((error, reviews) => {
+      if (error) {
+        callback(error, null);
+      } else {
+        const review = reviews.filter(r => r.restaurant_id == id);
+        if (review) { // Got the restaurant
+          callback(null, review);
+        } else { // Restaurant does not exist in the database
+          callback('Review does not exist', null);
         }
       }
     });
@@ -188,6 +243,12 @@ class DBHelper {
   }
 
   /**
+   * Restaurant reviews URL.
+   */
+  static urlForRestaurantReviews(restaurant) {
+    return (`./reviews/?restaurant_id=${restaurant.id}`);
+  }
+  /**
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant, small = false) {
@@ -227,4 +288,5 @@ class DBHelper {
 
 const dbPromise = idb.open('restaurant-db', 1, function(upgradeDb) {
     restaurantStore = upgradeDb.createObjectStore('restaurants', { keyPath: 'id' });//upgradeDb.transaction.objectStore('restaurants');//upgradeDb.createObjectStore('restaurants', { keyPath: 'id' });
+    reviewStore = upgradeDb.createObjectStore('restaurantReviews', { keyPath: 'id' });
 });

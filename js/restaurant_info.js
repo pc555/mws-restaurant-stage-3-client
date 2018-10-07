@@ -56,12 +56,12 @@ initMap = () => {
  */
 fetchRestaurantFromURL = (callback) => {
 
-  console.log('hhhhh  '+self.restaurant);
   if (self.restaurant) { // restaurant already fetched!
+    //console.log('fetched...')
     callback(null, self.restaurant)
     return;
   }
-  console.log('kkk')
+  
   const id = getParameterByName('id');
   if (!id) { // no id found in URL
     error = 'No restaurant id in URL'
@@ -74,8 +74,22 @@ fetchRestaurantFromURL = (callback) => {
         return;
       }
       fillRestaurantHTML();
-      callback(null, restaurant)
+      callback(null, restaurant);
     });
+    // console.log('aloha!!!');
+
+    // DBHelper.fetchRestaurantReviewById(id, (error, reviews) => {
+    //   console.log(reviews)
+    //   //self.restaurant[reviews] = reviews;
+    //   //print(self.restaurant)
+    //   if (!reviews) {
+    //     console.error(error);
+    //     return;
+    //   }
+    //   //callback(null, reviews)
+    // });
+    // fillRestaurantHTML();
+    // callback(null, self.restaurant);
   }
 }
 
@@ -83,6 +97,8 @@ fetchRestaurantFromURL = (callback) => {
  * Create restaurant HTML and add it to the webpage
  */
 fillRestaurantHTML = (restaurant = self.restaurant) => {
+  console.log('fill...');
+  console.log('res...' + self.restaurant);
   const name = document.getElementById('restaurant-name');
   name.innerHTML = restaurant.name;
 
@@ -100,12 +116,6 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   image.alt = `Photo of restaurant ${restaurant.name}`;
   picture.append(source);
   picture.append(image);
-  //li.append(picture);
-
-  // const image = document.getElementById('restaurant-img');
-  // image.className = 'restaurant-img'
-  // image.src = DBHelper.imageUrlForRestaurant(restaurant);
-  // image.alt = `Photo of ${restaurant.name}`;
 
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
@@ -166,9 +176,14 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     return;
   }
   const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
+  console.log('this is reviewforeache....');
+  console.log(reviews);
+  for(review of reviews) {
     ul.appendChild(createReviewHTML(review));
-  });
+  };
+  // reviews.forEach(review => {
+  //   ul.appendChild(createReviewHTML(review));
+  // });
   container.appendChild(ul);
   //container.insertAdjacentHTML('beforeend', formHTML);
 }
@@ -184,7 +199,7 @@ createReviewHTML = (review) => {
   li.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+  date.innerHTML = new Date(review.updatedAt);//.date;
   li.appendChild(date);
 
   const rating = document.createElement('p');
