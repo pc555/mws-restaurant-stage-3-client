@@ -97,8 +97,8 @@ fetchRestaurantFromURL = (callback) => {
  * Create restaurant HTML and add it to the webpage
  */
 fillRestaurantHTML = (restaurant = self.restaurant) => {
-  console.log('fill...');
-  console.log('res...' + self.restaurant);
+  //console.log('fill...');
+  //console.log('res...' + self.restaurant);
   const name = document.getElementById('restaurant-name');
   name.innerHTML = restaurant.name;
 
@@ -150,8 +150,59 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 
 function addReview(e) {
   e.preventDefault();
-  console.log('hello review')
-  alert(msg)
+  // console.log('hello review')
+  // alert(msg)
+  const curId = location.search.split('=')[1];
+  const name = document.getElementById("name").value;
+  const rating = document.getElementById("rating").value;
+  const comments = document.getElementById("msg").value;
+
+  //console.log(`restaurant: ${curId} reviewer: ${name} rating: ${rating} comments: ${comments}`);
+  (async () => {
+    const rawResponse = await fetch('http://localhost:1337/reviews/', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+          "restaurant_id": curId,
+          "name": name,
+          "rating": rating,
+          "comments": comments
+      })
+    });
+    const content = await rawResponse.json();
+  
+    console.log(content);
+    refreshReviewsHTML(curId);
+    frm = document.getElementById('review-form');
+    frm.reset();
+  })();
+}
+
+refreshReviewsHTML = (id) => {
+  console.log('id = ' + id)
+  DBHelper.fetchRestaurantReviewById(id, (error, reviews) => {
+    if (!reviews) {
+      console.error(error);
+      return;
+    } else {
+      self.restaurant.reviews = reviews;
+      //callback(null, restaurant);
+      // Get the <ul> element with id="myList"
+      let list = document.getElementById("reviews-list");
+
+      // As long as <ul> has a child node, remove it
+      while (list.hasChildNodes()) {   
+          list.removeChild(list.firstChild);
+      }
+
+      for(review of reviews) {
+        list.appendChild(createReviewHTML(review));
+      };
+    }
+  });
 }
 /**
  * Create all reviews HTML and add them to the webpage.
@@ -161,24 +212,14 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const title = document.createElement('h3');
   title.innerHTML = 'Reviews';
   container.appendChild(title);
-  /*
-  var formHTML = '<form action = "/" onsubmit="return addReview()">' +
-  '<div><label for="name">Name:</label><input type="text" id="name" name="name"></div>' +
-  '<div><label for="rating">Rating:</label><input type="number" id="rating" name="rating"></div>' +
-  '<div><label for="msg">Comments:&nbsp&nbsp</label><textarea id="msg" name="comments"></textarea></div>'+
-  '<div class="button"><button type="submit">Add Review</button></div>' +
-  '</form>';*/
   
   if (!reviews) {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
     container.appendChild(noReviews);
-    //container.insertAdjacentHTML('beforeend', formHTML);
     return;
   }
   const ul = document.getElementById('reviews-list');
-  console.log('this is reviewforeache....');
-  console.log(reviews);
   for(review of reviews) {
     ul.appendChild(createReviewHTML(review));
   };
@@ -186,6 +227,7 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   //   ul.appendChild(createReviewHTML(review));
   // });
   container.appendChild(ul);
+  //container.insertAdjacentHTML('afterbegin', ul);
   //container.insertAdjacentHTML('beforeend', formHTML);
 }
 

@@ -132,7 +132,9 @@ class DBHelper {
   static fetchRestaurantReviewById(id, callback) {
     // console.log('fetchRestaurantById');
     // fetch all restaurants with proper error handling.
-    fetch(`http://localhost:1337/reviews/?restaurant_id=${id}`)
+    let dest = `http://localhost:1337/reviews/?restaurant_id=${id}`;
+    console.log('fetching..' + dest);
+    fetch(dest)
     .then((response)=>response.json())
     .then(data => {
       //console.log('fetchRestaurantReviewById ID:' + id);
@@ -150,7 +152,7 @@ class DBHelper {
       callback(null, data);
     })
     .catch(error => {
-      console.log('error fetch review by id');
+      console.log('error fetch review by id' + error);
     });
 
 
