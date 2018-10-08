@@ -57,7 +57,6 @@ initMap = () => {
 fetchRestaurantFromURL = (callback) => {
 
   if (self.restaurant) { // restaurant already fetched!
-    //console.log('fetched...')
     callback(null, self.restaurant)
     return;
   }
@@ -76,7 +75,6 @@ fetchRestaurantFromURL = (callback) => {
       fillRestaurantHTML();
       callback(null, restaurant);
     });
-    // console.log('aloha!!!');
 
     // DBHelper.fetchRestaurantReviewById(id, (error, reviews) => {
     //   console.log(reviews)
@@ -150,39 +148,56 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 
 function addReview(e) {
   e.preventDefault();
-  // console.log('hello review')
-  // alert(msg)
+  
   const curId = location.search.split('=')[1];
   const name = document.getElementById("name").value;
   const rating = document.getElementById("rating").value;
   const comments = document.getElementById("msg").value;
+  const curTime = new Date().getTime();
 
   //console.log(`restaurant: ${curId} reviewer: ${name} rating: ${rating} comments: ${comments}`);
-  (async () => {
-    const rawResponse = await fetch('http://localhost:1337/reviews/', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-          "restaurant_id": parseInt(curId),
-          "name": name,
-          "rating": parseInt(rating),
-          "comments": comments
-      })
-    });
-    const content = await rawResponse.json();
+  if (navigator.onLine) {
+    (async () => {
+      const rawResponse = await fetch('http://localhost:1337/reviews/', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "restaurant_id": parseInt(curId),
+            "name": name,
+            "rating": parseInt(rating),
+            "comments": comments,
+            "createdAt": curTime,
+            "updatedAt": curTime
+        })
+      });
+      const content = await rawResponse.json();
+    
+      refreshReviewsHTML(curId);
+    })();
+  } else {
+    // offline, store reviews in seperate idb
+    // append new review to end of list for now 
+    let list = document.getElementById("reviews-list");
+    review = {
+      "restaurant_id": parseInt(curId),
+      "name": name,
+      "rating": parseInt(rating),
+      "comments": comments,
+      "createdAt": curTime,
+      "updatedAt": curTime
+    };
+    list.appendChild(createReviewHTML(review));
+    DBHelper.addOfflineReviewToDB(review);
+  }
+  //frm = document.getElementById('review-form');
+  document.getElementById('review-form').reset();
   
-    console.log(content);
-    refreshReviewsHTML(curId);
-    frm = document.getElementById('review-form');
-    frm.reset();
-  })();
 }
 
 refreshReviewsHTML = (id) => {
-  console.log('id = ' + id)
   DBHelper.fetchRestaurantReviewById(id, (error, reviews) => {
     if (!reviews) {
       console.error(error);

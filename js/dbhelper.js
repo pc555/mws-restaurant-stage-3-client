@@ -45,19 +45,6 @@ class DBHelper {
         })
       })
     });
-    // let xhr = new XMLHttpRequest();
-    // xhr.open('GET', DBHelper.DATABASE_URL);
-    // xhr.onload = () => {
-    //   if (xhr.status === 200) { // Got a success response from server!
-    //     const json = JSON.parse(xhr.responseText);
-    //     const restaurants = json.restaurants;
-    //     callback(null, restaurants);
-    //   } else { // Oops!. Got an error from server.
-    //     const error = (`Request failed. Returned status of ${xhr.status}`);
-    //     callback(error, null);
-    //   }
-    // };
-    // xhr.send();
   }
 
   /**
@@ -133,7 +120,7 @@ class DBHelper {
     // console.log('fetchRestaurantById');
     // fetch all restaurants with proper error handling.
     let dest = `http://localhost:1337/reviews/?restaurant_id=${id}`;
-    console.log('fetching..' + dest);
+    //console.log('fetching..' + dest);
     fetch(dest)
     .then((response)=>response.json())
     .then(data => {
@@ -157,7 +144,7 @@ class DBHelper {
     .catch(error => {
       //callback(error, null)
       //fetch failed, getting data from IndexDB
-      console.log('error fetch review by id' + error);
+      console.log('fetch failed, getting review by id from IndexDB, err:' + error);
       dbPromise.then(db => {
         const tx = db.transaction("restaurantReviews", "readonly");
         const store = tx.objectStore("restaurantReviews");
@@ -185,6 +172,17 @@ class DBHelper {
     // });
   }
 
+  static addOfflineReviewToDB(review) {
+    dbPromise.then(function(db) {
+      let tx = db.transaction('offlineReviews', 'readwrite');
+      let offlineStore = tx.objectStore('offlineReviews');
+
+      offlineStore.put(review);
+      console.log('adding offline review');
+      console.log(tx.complete);
+      return tx.complete;
+    });
+  }
   /**
    * Fetch restaurants by a cuisine type with proper error handling.
    */
@@ -328,4 +326,5 @@ class DBHelper {
 const dbPromise = idb.open('restaurant-db', 1, function(upgradeDb) {
     restaurantStore = upgradeDb.createObjectStore('restaurants', { keyPath: 'id' });//upgradeDb.transaction.objectStore('restaurants');//upgradeDb.createObjectStore('restaurants', { keyPath: 'id' });
     reviewStore = upgradeDb.createObjectStore('restaurantReviews', { keyPath: 'id' });
+    offlineStore = upgradeDb.createObjectStore('offlineReviews', { keyPath: 'createdAt' });
 });
