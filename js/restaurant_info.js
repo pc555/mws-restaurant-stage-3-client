@@ -166,9 +166,9 @@ function addReview(e) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-          "restaurant_id": curId,
+          "restaurant_id": parseInt(curId),
           "name": name,
-          "rating": rating,
+          "rating": parseInt(rating),
           "comments": comments
       })
     });
@@ -188,6 +188,7 @@ refreshReviewsHTML = (id) => {
       console.error(error);
       return;
     } else {
+      if (!self.restaurant) return;
       self.restaurant.reviews = reviews;
       //callback(null, restaurant);
       // Get the <ul> element with id="myList"
