@@ -107,8 +107,8 @@ class DBHelper {
     
 
     DBHelper.fetchRestaurantReviewById(id, (error, reviews) => {
-      console.log('get review by id');
-      console.log(reviews);
+      // console.log('get review by id');
+      // console.log(reviews);
         if (!reviews) {
           console.log(error);
           //return;
@@ -151,14 +151,14 @@ class DBHelper {
     .catch(error => {
       //callback(error, null)
       //fetch failed, getting data from IndexDB
-      console.log('fetch failed, getting review by id from IndexDB, err:' + error);
+      //console.log('fetch failed, getting review by id from IndexDB, err:' + error);
       dbPromise.then(db => {
         const tx = db.transaction("restaurantReviews", "readonly");
         const store = tx.objectStore("restaurantReviews");
         return store.getAll()
       }).then(allObjs => {
         let r = allObjs.filter(item => item.restaurant_id == id);
-        console.log(r);
+        //console.log(r);
         callback(null, r);
       });
     });

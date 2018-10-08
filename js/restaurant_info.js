@@ -3,12 +3,12 @@ var newMap;
 let favoriteBtn = document.getElementById('favoriteBtn');
 
 document.addEventListener('DOMContentLoaded', (event) => {  
-  console.log('initmap')
+  //console.log('initmap')
   initMap();
 })
 
 favoriteBtn.addEventListener('click', (e) => {
-  console.log('button clicked');
+  //console.log('button clicked');
   //update new value
   DBHelper.updateFavorite(getParameterByName('id'), favoriteBtn.value != "Favorite");
 
@@ -22,7 +22,7 @@ favoriteBtn.addEventListener('click', (e) => {
 });
 
 window.addEventListener('online',  ()=>{
-  console.log('going online now!');
+  //console.log('going online now!');
   DBHelper.syncOfflineReviewToServer();
 });
 /**
