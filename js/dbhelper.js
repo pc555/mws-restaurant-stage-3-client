@@ -89,27 +89,34 @@ class DBHelper {
     // console.log('fetchRestaurantById');
     // fetch all restaurants with proper error handling.
     let restaurant = null;
-    DBHelper.fetchRestaurants((error, restaurants) => {
-      if (error) {
-        callback(error, null);
-      } else {
-        restaurant = restaurants.find(r => r.id == id);
-        if (restaurant) { // Got the restaurant
-          // callback(null, restaurant);
-        } else { // Restaurant does not exist in the database
-          callback('Restaurant does not exist', null);
+    (async() => {
+      await DBHelper.fetchRestaurants((error, restaurants) => {
+        if (error) {
+          callback(error, null);
+        } else {
+          restaurant = restaurants.find(r => r.id == id);
+          if (restaurant) { // Got the restaurant
+            // callback(null, restaurant);
+          } else { // Restaurant does not exist in the database
+            callback('Restaurant does not exist', null);
+          }
         }
-      }
-    });
+      });
+    })();
+    
+    
 
     DBHelper.fetchRestaurantReviewById(id, (error, reviews) => {
-        if (!restaurant || !reviews) {
-          console.error(error);
-          return;
+      console.log('get review by id');
+      console.log(reviews);
+        if (!reviews) {
+          console.log(error);
+          //return;
         } else {
           restaurant.reviews = reviews;
           callback(null, restaurant);
         }
+        callback(null, restaurant);
       });
   }
 
@@ -178,9 +185,104 @@ class DBHelper {
       let offlineStore = tx.objectStore('offlineReviews');
 
       offlineStore.put(review);
-      console.log('adding offline review');
-      console.log(tx.complete);
+      //console.log('adding offline review');
+      //console.log(tx.complete);
       return tx.complete;
+    });
+  }
+
+  /**
+   * Sync all offline reviews from idb to server
+   */
+  static syncOfflineReviewToServer() {
+    console.log('sync offline reviews');
+    
+    let delKeys = [];
+    (async() => {
+      const offlineReviews = await dbPromise.then(db => {
+        const tx = db.transaction("offlineReviews", "readonly");
+        const store = tx.objectStore("offlineReviews");
+        return store.getAll();
+      });
+
+      for (let review of offlineReviews) {
+        DBHelper.saveReviewToServer(review);
+      }
+      //console.log('offlines..');
+      //console.log(offlineReviews.map((r) => r.createdAt));
+      DBHelper.deleteOfflineReviews(offlineReviews.map((r) => r.createdAt));
+
+
+    })();
+    // dbPromise.then(db => {
+    //   const tx = db.transaction("offlineReviews", "readonly");
+    //   const store = tx.objectStore("offlineReviews");
+    //   return store.getAll();
+      // store.getAll().then(allObjs => {
+      //   //console.log(allObjs);
+      //   for(let item of allObjs) {
+      //     // Send post request to update server data
+      //     delKeys.push(item.createdAt);
+      //   }
+      // });
+      // for (let key in delKeys) {
+      //   const tx = db.transaction('offlineReviews', 'readwrite');
+      //   tx.objectStore('offlineReviews').delete(key);
+      // }
+      // console.log('keys to be deleted..');
+      // console.log(delKeys);
+    //});
+    
+
+  }
+  static updateFavorite(rid, is_favorite) {
+    (async () => {
+      const rawResponse = await fetch(`http://localhost:1337/restaurants/${rid}/`, {
+        method: 'PUT',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "is_favorite": Boolean(is_favorite)
+        })
+      });
+      const content = await rawResponse.json();
+    })();
+  }
+
+  static saveReviewToServer(review) {//rid, name, rating, comments, curTime) {
+    (async () => {
+      const rawResponse = await fetch('http://localhost:1337/reviews/', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "restaurant_id": parseInt(review.restaurant_id),
+            "name": review.name,
+            "rating": parseInt(review.rating),
+            "comments": review.comments,
+            "createdAt": review.curTime,
+            "updatedAt": review.curTime
+        })
+      });
+      const content = await rawResponse.json();
+    })();
+  }
+
+  static deleteOfflineReviews(delKeys) {
+    console.log(delKeys);
+    dbPromise.then(db => {
+      const tx = db.transaction("offlineReviews", "readwrite");
+      const store = tx.objectStore("offlineReviews");
+
+      for (let key of delKeys) {
+        console.log(`Deleting key: ${key}`);
+        const tx = db.transaction('offlineReviews', 'readwrite');
+        tx.objectStore('offlineReviews').delete(key);
+      }
     });
   }
   /**

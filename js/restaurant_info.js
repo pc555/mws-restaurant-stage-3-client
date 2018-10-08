@@ -1,10 +1,30 @@
 let restaurant;
 var newMap;
+let favoriteBtn = document.getElementById('favoriteBtn');
 
 document.addEventListener('DOMContentLoaded', (event) => {  
   console.log('initmap')
   initMap();
 })
+
+favoriteBtn.addEventListener('click', (e) => {
+  console.log('button clicked');
+  //update new value
+  DBHelper.updateFavorite(getParameterByName('id'), favoriteBtn.value != "Favorite");
+
+  // update button text
+  if (favoriteBtn.value == "Favorite") {
+    favoriteBtn.value = "Not Favorite";
+
+  } else {
+    favoriteBtn.value = "Favorite";
+  };
+});
+
+window.addEventListener('online',  ()=>{
+  console.log('going online now!');
+  DBHelper.syncOfflineReviewToServer();
+});
 /**
  * Initialize leaflet map
  */
@@ -103,6 +123,9 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const address = document.getElementById('restaurant-address');
   address.innerHTML = restaurant.address;
 
+  // update favorite restaurant
+  favoriteBtn.value = restaurant.is_favorite? "Favorite": "Not Favorite";
+
   //Create picture tag and load smaller image when screen size is small
   const picture = document.getElementById('restaurant-pic');
   const source = document.createElement('source');
@@ -148,8 +171,9 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 
 function addReview(e) {
   e.preventDefault();
+  // DBHelper.syncOfflineReviewToServer();
   
-  const curId = location.search.split('=')[1];
+  const curId = getParameterByName('id');
   const name = document.getElementById("name").value;
   const rating = document.getElementById("rating").value;
   const comments = document.getElementById("msg").value;
