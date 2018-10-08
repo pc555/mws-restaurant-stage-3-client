@@ -116,7 +116,7 @@ class DBHelper {
     });
 
     DBHelper.fetchRestaurantReviewById(id, (error, reviews) => {
-        if (!reviews) {
+        if (!restaurant || !reviews) {
           console.error(error);
           return;
         } else {
@@ -151,8 +151,22 @@ class DBHelper {
 
       callback(null, data);
     })
+    // .catch(error => {
+    //   console.log('error fetch review by id' + error);
+    // });
     .catch(error => {
+      //callback(error, null)
+      //fetch failed, getting data from IndexDB
       console.log('error fetch review by id' + error);
+      dbPromise.then(db => {
+        const tx = db.transaction("restaurantReviews", "readonly");
+        const store = tx.objectStore("restaurantReviews");
+        return store.getAll()
+      }).then(allObjs => {
+        let r = allObjs.filter(item => item.restaurant_id == id);
+        console.log(r);
+        callback(null, r);
+      });
     });
 
 
