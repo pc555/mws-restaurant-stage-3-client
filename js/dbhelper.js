@@ -114,7 +114,7 @@ class DBHelper {
           //return;
         } else {
           restaurant.reviews = reviews;
-          callback(null, restaurant);
+          //callback(null, restaurant);
         }
         callback(null, restaurant);
       });
@@ -131,7 +131,6 @@ class DBHelper {
     fetch(dest)
     .then((response)=>response.json())
     .then(data => {
-      //console.log('fetchRestaurantReviewById ID:' + id);
       //successful fetch restaurant, put it in 
       dbPromise.then(function(db) {
         let tx = db.transaction('restaurantReviews', 'readwrite');
