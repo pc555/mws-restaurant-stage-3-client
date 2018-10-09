@@ -21,22 +21,27 @@ self.addEventListener('install', function(event) {
 
 self.addEventListener('fetch', function(event) {
   let requestUrl = event.request.url;
-  if(requestUrl.origin === location.origin && requestUrl.pathname === '/') {
-    event.respondWith(caches.match('index.html'));
-    return;
-  }
+  console.log('fetch url..');
+  console.log(requestUrl);
+  // if(requestUrl.origin === location.origin && requestUrl.pathname === '/') {
+  //   console.log('1');
+  //   event.respondWith(caches.match('index.html'));
+  //   return;
+  // }
   
   // need to get response from server
   if(requestUrl.includes(':1337')) {
-    if(requestUrl.includes('restaurants')) {
+    //if(requestUrl.includes('restaurants')) {
+      console.log('2');
       // get all restaurant list from indexDB
       return;
-    }
+    //}
   }
 
   event.respondWith(
     caches.match(event.request)
       .then(function(response) {
+        console.log('3');
         // Return response from cache
         if (response) {
           return response;
