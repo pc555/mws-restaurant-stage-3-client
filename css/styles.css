@@ -368,6 +368,7 @@ form {
   /* Just to center the form on the page */
   /* margin: 0 auto; */
   width: 400px;
+  max-width: 90%;
   /* To see the outline of the form */
   padding: 1em;
   border: 1px solid #CCC;
@@ -396,6 +397,8 @@ input, textarea {
 
   /* To harmonize the look & feel of text field border */
   border: 1px solid #999;
+
+  max-width: 90%;
 }
 
 input:focus, textarea:focus {
